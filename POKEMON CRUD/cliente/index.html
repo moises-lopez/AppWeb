@@ -1,6 +1,12 @@
 <html>
   <head>
     <style type="text/css">
+      .forms{
+        width: 300px;
+        padding: 25px 0;
+        margin: 0;
+        float: left;
+      }
       .items {
         display: flex;
         width: 100%;
@@ -26,10 +32,32 @@
     <script src="./utils.js"></script>
   </head>
   <body>
-    <div id="container">
+    <div class = "forms">    
       name: <input type="text" id="pokemon-name" />
-      <button id="add-item">add</button>
+      <div><select id="type" name="type">
+        <option value="pokemon">Pokemon</option>
+        <option value="item-card">Item Card</option>
+        <option value="prize-card">Prize Card</option>
+        <option value="element-card">Element Card</option>
+      </select></div>
+      data (ONLY IF NOT POKEMON): <input type="text" id="data" />
+      <button id="add-item">add</button></div>
+      <div class = "forms">    
+    <button id="getAll">getAll</button>
     </div>
+    <div class = "forms">
+    get element by name: <input type="text" id="get-pokemon-name" />
+    <button id="getID">getID</button>
+  </div>
+  <div class = "forms">
+    delete: <input type="text" id="delete-pokemon" />
+    <button id="delete">delete</button>
+  </div>
+  <div class = "forms">
+    update: <input type="text" id="update-pokemon" />
+    data(DONT UPDATE POKEMONS): <input type="text" id="data-update" />
+    <button id="update">update</button>
+  </div>
     <div id="error"></div>
     <div id="items" class="items"></div>
   </body>
