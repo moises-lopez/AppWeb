@@ -10,18 +10,53 @@ app.use(
   })
 );
 
+var MongoClient = require("mongodb").MongoClient;
+var url =
+  "mongodb+srv://123:123@cluster0.qcopr.mongodb.net/POKEMONGAME?retryWrites=true&w=majority";
 
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://123:123@cluster0.qcopr.mongodb.net/POKEMONGAME?retryWrites=true&w=majority";
-
-MongoClient.connect(url, function(err, db) {
+MongoClient.connect(url, function (err, db) {
   if (err) throw err;
   var dbo = db.db("POKEMONGAME");
 
+  // app.get("/get/game", function (req, res) {
+  //   dbo
+  //     .collection("games")
+  //     .find()
+  //     .toArray(function (err, result) {
+  //       res.send(result);
+  //     });
+  // });
+
+  // app.post("/add", async (req, res) => {
+  //   let params = processParams(req);
+  //   dbo
+  //     .collection("games")
+  //     .find()
+  //     .toArray(function (err, result) {
+  //       res.send(result);
+  //     });
+  //   res.send("Success");
+  // });
+
+  app.get("/updateStatus", async (req, res) => {
+    let params = processParams(req);
+    let myId = params.id;
+    let numId = parseInt(myId, 10);
+    console.log("Update status server");
+    dbo
+      .collection("games")
+      .find({ id: numId })
+      .project({ _id: 0, cards: 1 })
+      .toArray(function (err, result) {
+        console.log(result);
+        res.send(result);
+      });
+  });
+
   app.post("/add", async (req, res) => {
     let params = processParams(req);
-    params = params.params
-    console.log(params)
+    params = params.params;
+    console.log(params);
     let typecard = params.type;
     let name = params.name;
     let data;
@@ -36,43 +71,99 @@ MongoClient.connect(url, function(err, db) {
     res.send("Success");
   });
 
-
   app.get("/get/:id", (req, res) => {
     let params = processParams(req);
     let name = params.id; //Utilizamos el nombre de la carta como ID
-    dbo.collection("DECK").find({name : name}).toArray(function(err, result){ res.send(result) });
-    
+    dbo
+      .collection("DECK")
+      .find({ name: name })
+      .toArray(function (err, result) {
+        res.send(result);
+      });
   });
-  
+
   app.delete("/delete/:id", function (req, res) {
-    console.log("DELETE?")
+    console.log("DELETE?");
     let params = processParams(req);
     let name = params.id; //Utilizamos el nombre de la carta como ID
-    dbo.collection("DECK").remove({name : name})
-    
-    res.send("Deleted")
+    dbo.collection("DECK").remove({ name: name });
+
+    res.send("Deleted");
   });
-  
+
   app.get("/get", function (req, res) {
-    dbo.collection("DECK").find().toArray(function(err, result){ res.send(result) });
+    dbo
+      .collection("DECK")
+      .find()
+      .toArray(function (err, result) {
+        res.send(result);
+      });
   });
-  
+
+  app.get("/getGameID", function (req, res) {
+    let myAuxArr = [];
+    dbo
+      .collection("games")
+      .find()
+      .project({ _id: 0, id: 1 })
+      .toArray(function (err, result) {
+        console.log(result);
+        result.forEach((id) => {
+          myAuxArr.push(id.id);
+        });
+        console.log(myAuxArr);
+        var max = Math.max(...myAuxArr);
+        console.log(max++);
+        res.send(String(max));
+      });
+  });
+
+  app.get("/draw", function (req, res) {
+    let params = processParams(req);
+    let fiveCards = [];
+    console.log("params = ", params.id);
+    let myId = params.id;
+    let numId = parseInt(myId, 10);
+    dbo
+      .collection("DECK")
+      .find()
+      .toArray(function (err, result) {
+        for (let index = 0; index < 5; index++) {
+          let indice = Math.floor(Math.random() * 7);
+          const element = result[indice];
+          fiveCards.push(element);
+        }
+        console.log(fiveCards);
+        // let cards = {
+        //   cards: ...fiveCards,
+        // };
+        let myquery = { id: numId };
+        let newvalues = { $push: { cards: { $each: fiveCards } } };
+        dbo
+          .collection("games")
+          .updateOne(myquery, newvalues, function (err, res) {
+            if (err) throw err;
+            console.log("update");
+          });
+        res.send("Success");
+      });
+  });
+
   app.put("/put/:id", function (req, res) {
     let params = processParams(req);
-    params = params.params
-    console.log(params)
+    params = params.params;
+    console.log(params);
     let myname = params.name;
     let mydata = params.data; //el parseo de la data será desde front, data contiene todo
-    var myquery = { name : myname };
-    var newvalues = { $set: {data: mydata } };
-    console.log(mydata, myname)
-    dbo.collection("DECK").updateOne(myquery, newvalues, function(err, res) {
+    var myquery = { name: myname };
+    var newvalues = { $set: { data: mydata } };
+    console.log(mydata, myname);
+    dbo.collection("DECK").updateOne(myquery, newvalues, function (err, res) {
       if (err) throw err;
       console.log("1 document updated");
     });
     res.send("Success");
   });
-  
 });
 
 function processParams(req) {
@@ -105,7 +196,4 @@ const getPokemonCard = async (name) => {
   return card;
 };
 
-
-
-  app.listen(3000);
-
+app.listen(3000);
