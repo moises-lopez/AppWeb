@@ -27,16 +27,19 @@ MongoClient.connect(url, function (err, db) {
   //     });
   // });
 
-  // app.post("/add", async (req, res) => {
-  //   let params = processParams(req);
-  //   dbo
-  //     .collection("games")
-  //     .find()
-  //     .toArray(function (err, result) {
-  //       res.send(result);
-  //     });
-  //   res.send("Success");
-  // });
+  app.post("/addGame", async (req, res) => {
+    let params = processParams(req);
+    let myId = params.params.id;
+    let numId = parseInt(myId, 10);
+    console.log("numid = ", numId);
+    console.log("params id = ", params.id);
+    let game = {
+      id: numId,
+      cards: [],
+    };
+    dbo.collection("games").insertOne(game);
+    res.send("Success");
+  });
 
   app.get("/updateStatus", async (req, res) => {
     let params = processParams(req);
@@ -129,7 +132,7 @@ MongoClient.connect(url, function (err, db) {
       .find()
       .toArray(function (err, result) {
         for (let index = 0; index < 5; index++) {
-          let indice = Math.floor(Math.random() * 7);
+          let indice = Math.floor(Math.random() * 50);
           const element = result[indice];
           fiveCards.push(element);
         }
@@ -141,11 +144,11 @@ MongoClient.connect(url, function (err, db) {
         let newvalues = { $push: { cards: { $each: fiveCards } } };
         dbo
           .collection("games")
-          .updateOne(myquery, newvalues, function (err, res) {
+          .updateOne(myquery, newvalues, function (err, result) {
             if (err) throw err;
             console.log("update");
+            res.send(result);
           });
-        res.send("Success");
       });
   });
 

@@ -7,27 +7,19 @@ document.addEventListener("DOMContentLoaded", (_) => {
     document.getElementById("delete").addEventListener("click", toDelete);
     document.getElementById("update").addEventListener("click", handleUpdate);
   } else if (document.getElementById("index").innerHTML == ",") {
-    document.getElementById("play").addEventListener("click", handlePlay);
+    document.getElementById("connect").addEventListener("click", handlePlay);
     document.getElementById("draw").addEventListener("click", handleDraw);
-    document.getElementById("upsta").addEventListener("click", updateStatus);
+    document
+      .getElementById("disconnect")
+      .addEventListener("click", handleDisconnect);
   }
 });
 
-let get_element_li = (
-  name,
-  id,
-  weight,
-  height,
-  base_experience,
-  image,
-  types
-) => {
-  return `<div class="added-pokemon pokecard" ><h1>Name: ${name} id: ${id} </h1> <div><img src="${image}"></div> <div>types: ${types}<div>weight: ${weight} height: ${height} <div> base experience: ${base_experience} </div>`;
-};
-
-let get_element_li_not_pokemon = (name, type, data) => {
-  return `<div class="added-pokemon pokecard"><h1>Name: ${name} Type Card: ${type} </h1> <div> Data: ${data} </div>`;
-};
+function handleDisconnect() {
+  localStorage.setItem("GameID", "");
+  document.getElementById("status").innerHTML = "";
+  document.getElementById("items").innerHTML = "";
+}
 
 function handlePlay() {
   axios
@@ -37,12 +29,16 @@ function handlePlay() {
       localStorage.setItem("GameID", id);
       document.getElementById("status").innerHTML =
         "Connected " + localStorage.getItem("GameID");
-
-      // axios.post("http://localhost:3000/addGame", params : {
-      //   id : localStorage.getItem("GameID")
-      // }).then((response) => {
-
-      // });
+      axios
+        .post("http://localhost:3000/addGame", {
+          params: {
+            id: localStorage.getItem("GameID"),
+          },
+        })
+        .then((response) => {
+          console.log("Game Room created");
+        });
+      console.log("Request update por juego iniciado");
       updateStatus();
       setInterval(updateStatus, 5000);
     })
@@ -55,11 +51,12 @@ function handleDraw() {
   axios
     .get(`http://localhost:3000/draw`, {
       params: {
-        id: 2,
+        id: localStorage.getItem("GameID"),
       },
     })
     .then((response) => {
-      console.log("HOLA == ", response.data);
+      console.log("DRAW CARDS");
+      console.log("Request update por draw");
       updateStatus();
     })
     .catch((err) => {
@@ -68,16 +65,14 @@ function handleDraw() {
 }
 
 function updateStatus() {
-  console.log("update status client");
   axios
     .get(`http://localhost:3000/updateStatus`, {
       params: {
-        id: 2,
+        id: localStorage.getItem("GameID"),
       },
     })
     .then((response) => {
-      console.log(response);
-      console.log("HOLA ? ", response.data[0].cards);
+      console.log("UPDATED");
       document.getElementById("items").innerHTML = "";
       response.data[0].cards.forEach((element) => {
         if (element.typecard == "pokemon") {
@@ -92,6 +87,8 @@ function updateStatus() {
       //div.innerHTML = "NO EXISTE";
     });
 }
+
+//FUNCIONES DE EXAMEN PASADO REUSADAS
 
 function handleUpdate() {
   let name = document.querySelector("#update-pokemon").value;
@@ -112,9 +109,6 @@ function handleUpdate() {
     });
 }
 
-function prueba() {
-  console.log("UPDATED");
-}
 function addPokemon(datos) {
   let myData = datos.data;
   let typeNames = [];
@@ -225,3 +219,19 @@ function getPokemon() {
       errorP.innerHTML = "NO EXISTE";
     });
 }
+
+let get_element_li = (
+  name,
+  id,
+  weight,
+  height,
+  base_experience,
+  image,
+  types
+) => {
+  return `<div class="added-pokemon pokecard" ><h1>Name: ${name} id: ${id} </h1> <div><img src="${image}"></div> <div>types: ${types}<div>weight: ${weight} height: ${height} <div> base experience: ${base_experience} </div>`;
+};
+
+let get_element_li_not_pokemon = (name, type, data) => {
+  return `<div class="added-pokemon pokecard"><h1>Name: ${name} Type Card: ${type} </h1> <div> Data: ${data} </div>`;
+};
